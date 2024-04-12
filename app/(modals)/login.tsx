@@ -11,6 +11,7 @@ import { defaultStyles } from "@/constants/Styles";
 import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useOAuth } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
 
 enum Strategy {
   Google = "oauth_google",
@@ -20,6 +21,8 @@ enum Strategy {
 
 const Page = () => {
   useWarmUpBrowser();
+
+  const router = useRouter();
 
   const { startOAuthFlow: appleAuth } = useOAuth({
     strategy: "oauth_apple",
@@ -37,6 +40,17 @@ const Page = () => {
       [Strategy.Apple]: appleAuth,
       [Strategy.Facebook]: facebookAuth,
     }[strategy];
+
+    try {
+      const { createdSessionId, setActive } = await selectedAuth();
+
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId });
+        router.back();
+      }
+    } catch (err) {
+      console.error("OAuth Error: ", err);
+    }
   };
 
   return (
